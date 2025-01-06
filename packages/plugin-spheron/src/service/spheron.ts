@@ -3,16 +3,17 @@ import { Service, ServiceType, IAgentRuntime } from "@ai16z/eliza";
 
 export interface ISpheronService {
     getDeployment(deploymentId: string): Promise<any>;
-    getDeploymentStatus(deploymentId: string): Promise<string>;
+    getDeploymentStatus(deploymentId: string): Promise<boolean>;
     getDeploymentLogs(deploymentId: string): Promise<any>;
     createDeployment(manifest: string): Promise<any>;
+    getDeploymentRemainingTime(deploymentId: string): Promise<number>;
+    updateDeployment(deploymentId: string, manifest: string): Promise<any>;
+    closeDeployment(deploymentId: string): Promise<any>;
     getBalance(): Promise<string>;
     deposit(amount: string): Promise<any>;
     withdraw(amount: string): Promise<any>;
     getTransactionHistory(): Promise<any>;
-    updateDeployment(deploymentId: string, manifest: string): Promise<any>;
-    closeDeployment(deploymentId: string): Promise<any>;
-    getDeploymentRemainingTime(deploymentId: string): Promise<number>;
+    getActiveLeases(): Promise<any>;
 }
 
 export class SpheronService extends Service implements ISpheronService {
@@ -53,11 +54,15 @@ export class SpheronService extends Service implements ISpheronService {
         }
     }
 
-    async getDeploymentStatus(deploymentId: string): Promise<string> {
+    async getDeploymentStatus(deploymentId: string): Promise<boolean> {
         this.ensureInitialized();
         try {
             const deployment = await this.getDeployment(deploymentId);
-            return deployment.status;
+
+            return (
+                deployment.currentReplicas === deployment.totalReplicas &&
+                !!deployment.forwarded_ports
+            );
         } catch (error: any) {
             throw new Error(
                 `Failed to get deployment status: ${error.message}`
@@ -161,7 +166,11 @@ export class SpheronService extends Service implements ISpheronService {
             );
 
             const currentTime = Math.floor(Date.now() / 1000); // Convert to seconds
-            const endTime = leaseDetails.endTime || 0;
+            // Convert endTime to seconds if it's in milliseconds
+            const endTime =
+                leaseDetails.endTime && leaseDetails.endTime > 1e12
+                    ? Math.floor(leaseDetails.endTime / 1000)
+                    : leaseDetails.endTime || 0;
 
             // Return 0 if deployment has ended
             return Math.max(0, endTime - currentTime);
@@ -169,6 +178,19 @@ export class SpheronService extends Service implements ISpheronService {
             throw new Error(
                 `Failed to get deployment remaining time: ${error.message}`
             );
+        }
+    }
+
+    async getActiveLeases(): Promise<any> {
+        this.ensureInitialized();
+        try {
+            const address = await this.sdk!.escrow.getAddress();
+            const leases = await this.sdk!.leases.getLeasesByState(address, {
+                state: "ACTIVE", // LeaseState.ACTIVE from the SDK
+            });
+            return leases;
+        } catch (error: any) {
+            throw new Error(`Failed to get active leases: ${error.message}`);
         }
     }
 }

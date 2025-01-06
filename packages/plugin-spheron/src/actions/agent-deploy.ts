@@ -8,7 +8,9 @@ import {
     generateObjectV2,
     ModelClass,
     elizaLogger,
+    stringToUuid,
     ServiceType,
+    getEmbeddingZeroVector,
 } from "@ai16z/eliza";
 import { createArrayCsvWriter } from "csv-writer";
 import * as path from "path";
@@ -70,8 +72,8 @@ Example response:
 
 Extract deployment requirements and determine if an agent should be deployed. Respond with a JSON markdown block.`;
 
-export const deployAction: Action = {
-    name: "DEPLOY_AGENT",
+export const agentDeployAction: Action = {
+    name: "AGENT_DEPLOY",
     description:
         "Analyze social media content and deploy an AI agent if needed",
     validate: async (runtime: IAgentRuntime, _message: Memory) => {
@@ -131,22 +133,6 @@ export const deployAction: Action = {
             // Generate Dockerfile and Spheron YAML
             const spheronYaml = generateSpheronYaml(agentConfig);
 
-            // Write files
-            const deploymentDir = path.join(
-                process.cwd(),
-                "deployments",
-                agentConfig.name.toLowerCase()
-            );
-            fs.mkdirSync(deploymentDir, { recursive: true });
-            fs.writeFileSync(
-                path.join(deploymentDir, "Dockerfile"),
-                dockerfile
-            );
-            fs.writeFileSync(
-                path.join(deploymentDir, "spheron.yaml"),
-                spheronYaml
-            );
-
             // Deploy using SpheronService
             const deployment =
                 await spheronService.createDeployment(spheronYaml);
@@ -163,6 +149,20 @@ export const deployAction: Action = {
                     "Status",
                 ],
                 append: true,
+            });
+
+            await runtime.messageManager.createMemory({
+                id: stringToUuid(deployment.id + "-" + runtime.agentId),
+                userId: runtime.agentId,
+                agentId: runtime.agentId,
+                content: {
+                    text: deployment.id,
+                    url: deployment.id,
+                    source: "spheron",
+                },
+                roomId: stringToUuid(deployment.id + "-" + runtime.agentId),
+                embedding: getEmbeddingZeroVector(),
+                createdAt: new Date().toISOString(),
             });
 
             await csvWriter.writeRecords([

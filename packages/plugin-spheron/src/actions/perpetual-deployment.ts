@@ -64,6 +64,26 @@ export const perpetualDeploymentAction: Action = {
                         elizaLogger.info(
                             `Redeployment initiated successfully. New deployment ID: ${newDeployment.id}`
                         );
+
+                        // Wait for deployment to be live
+                        let isLive = false;
+                        while (!isLive) {
+                            const status =
+                                await spheronService.getDeploymentStatus(
+                                    newDeployment.id
+                                );
+                            if (status) {
+                                isLive = true;
+                                elizaLogger.info(
+                                    "New agent is now live. Waiting for myself to get close..."
+                                );
+                            } else {
+                                // Wait for 30 seconds before checking again
+                                await new Promise((resolve) =>
+                                    setTimeout(resolve, 30000)
+                                );
+                            }
+                        }
                     }
                 } catch (error) {
                     elizaLogger.error(

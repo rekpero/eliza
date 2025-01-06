@@ -21,6 +21,10 @@ export const spheronDeploymentProvider: Provider = {
                     spheronService.getDeploymentStatus.bind(spheronService),
                 getDeploymentLogs:
                     spheronService.getDeploymentLogs.bind(spheronService),
+                getDeploymentRemainingTime:
+                    spheronService.getDeploymentRemainingTime.bind(
+                        spheronService
+                    ),
             };
         } catch (error: any) {
             return {
