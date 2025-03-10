@@ -29,6 +29,9 @@ export default defineConfig(({ mode }) => {
                 env.SERVER_BASE_URL
             )
         },
+        server: {
+            host: true,
+        },
         build: {
             outDir: "dist",
             minify: true,
