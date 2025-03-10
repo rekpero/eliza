@@ -3,6 +3,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        image: spheronfdn/eliza:latest
         stdin_open: true
         tty: true
         volumes:

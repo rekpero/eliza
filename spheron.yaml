@@ -1,0 +1,50 @@
+version: "1.0"
+
+services:
+  eliza:
+    image: spheronfdn/eliza:latest
+    pull_policy: IfNotPresent
+    expose:
+      - port: 3000
+        as: 3000
+        to:
+          - global: true
+      - port: 5173
+        as: 5173
+        to:
+          - global: true
+    env:
+      - TELEGRAM_BOT_TOKEN=
+      - ANTHROPIC_API_KEY=
+      - BIRDEYE_API_KEY=
+      - SOL_ADDRESS=So11111111111111111111111111111111111111112
+      - SLIPPAGE=1
+      - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+      - HELIUS_API_KEY=
+      - SERVER_PORT=3000
+      - WALLET_SECRET_SALT=secret_salt
+profiles:
+  name: eliza-testing
+  duration: 1h
+  mode: provider
+  compute:
+    eliza:
+      resources:
+        cpu:
+          units: 8
+        memory:
+          size: 16Gi
+        storage:
+          - size: 500Gi
+  placement:
+    westcoast:
+      pricing:
+        eliza:
+          token: CST
+          amount: 1
+
+deployment:
+  eliza:
+    westcoast:
+      profile: eliza
+      count: 1

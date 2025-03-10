@@ -38,7 +38,7 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN pnpm install
+RUN pnpm install --no-frozen-lockfile
 
 # Build the project
 RUN pnpm run build && pnpm prune --prod
@@ -76,4 +76,4 @@ COPY --from=builder /app/characters ./characters
 EXPOSE 3000 5173
 
 # Command to start the application
-CMD ["sh", "-c", "pnpm start & pnpm start:client"]
+CMD ["sh", "-c", "pnpm start & pnpm start:client --host"]
