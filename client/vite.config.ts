@@ -30,8 +30,9 @@ export default defineConfig(({ mode }) => {
             )
         },
         server: {
-            host: true,
-            allowedHosts: ['all'],
+            host: '0.0.0.0',
+            allowedHosts: ['*'],
+            cors: true,
         },
         build: {
             outDir: "dist",
