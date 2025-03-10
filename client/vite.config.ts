@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             host: true,
+            allowedHosts: ['all'],
         },
         build: {
             outDir: "dist",
