@@ -30,9 +30,7 @@ export default defineConfig(({ mode }) => {
             )
         },
         server: {
-            host: '0.0.0.0',
-            allowedHosts: ['*'],
-            cors: true,
+            host: true,
             hmr: {
                 clientPort: 443,
                 host: 'provider.gpufarm.xyz'
