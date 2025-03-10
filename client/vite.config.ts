@@ -33,6 +33,13 @@ export default defineConfig(({ mode }) => {
             host: '0.0.0.0',
             allowedHosts: ['*'],
             cors: true,
+            hmr: {
+                clientPort: 443,
+                host: 'provider.gpufarm.xyz'
+            },
+            watch: {
+                usePolling: true
+            }
         },
         build: {
             outDir: "dist",
